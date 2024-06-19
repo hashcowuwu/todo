@@ -4,8 +4,6 @@ use rand::Rng;
 use serde::{Deserialize, Serialize};
 use std::fs::{metadata, File};
 use std::io::{BufReader, BufWriter};
-use std::path::PathBuf;
-use std::env;
 
 #[derive(Parser, Debug)]
 #[command(version,about,long_about = None)]
@@ -20,13 +18,22 @@ struct Args {
 #[derive(Serialize, Deserialize)]
 struct Date {
     words: Vec<String>,
+    mark: Vec<bool>,
 }
 
 impl Date {
     fn new() -> Date {
-        Date { words: Vec::new() }
+        Date { 
+            words: Vec::new() ,
+            mark: Vec::new(),
+        }
     }
 }
+
+
+
+
+
 
 fn get_emoji() -> String {
     let emoji_ranges = [
@@ -60,6 +67,7 @@ fn read_word_list_file() -> Result<Date, Box<dyn std::error::Error>> {
         Err(_) => {
             let mut originlist = Date::new();
             originlist.words.push("to Do".to_string());
+            originlist.mark.push(false);
             write_word_list_file(originlist)?;
         }
     }
@@ -83,6 +91,7 @@ fn add_to_do(newtask: String) -> Result<(), Box<dyn std::error::Error>> {
         Ok(loaded_data) => {
             let mut to_do_list = loaded_data;
             to_do_list.words.push(newtask);
+            to_do_list.mark.push(false);
             write_word_list_file(to_do_list)?;
         }
         Err(e) => {
@@ -130,7 +139,11 @@ fn main() {
         Ok(loaded_data) => {
             let mut idx = 0;
             for i in &loaded_data.words {
-                println!("{} {} {}", idx, get_emoji(), i);
+                if idx == 0 {
+                    println!("{} {}", get_emoji(), i);
+                }else {
+                    println!("[{}]:{} {}",idx,get_emoji(),i);
+                }
                 idx += 1;
             }
         }
